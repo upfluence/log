@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"runtime"
 
+	"github.com/upfluence/log"
 	"github.com/upfluence/log/record"
 )
 
@@ -26,6 +27,10 @@ type formatter struct {
 	calldepth int
 }
 
+type discarder interface {
+	Discard() bool
+}
+
 func (f *formatter) formatFields(fs []record.Field) string {
 	if len(fs) == 0 {
 		return ""
@@ -34,6 +39,12 @@ func (f *formatter) formatFields(fs []record.Field) string {
 	var res string
 
 	for _, f := range fs {
+		d, ok := f.(discarder)
+
+		if ok && d.Discard() {
+			continue
+		}
+
 		res += fmt.Sprintf("[%s: %s]", f.GetKey(), f.GetValue())
 	}
 
@@ -55,7 +66,15 @@ func (f *formatter) formatErrs(errs []error) string {
 }
 
 func (f *formatter) Format(r record.Record) string {
-	var _, file, line, ok = runtime.Caller(f.calldepth + 1)
+	var depth = f.calldepth + 1
+
+	for _, f := range r.Fields() {
+		if f == log.SkipFrame {
+			depth++
+		}
+	}
+
+	_, file, line, ok := runtime.Caller(depth)
 
 	if !ok {
 		file = "???"
