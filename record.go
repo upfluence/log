@@ -2,13 +2,13 @@ package log
 
 import "github.com/upfluence/log/record"
 
-var SkipFrame = nullField{}
+var SkipFrame = skipFrameField{}
 
-type nullField struct{}
+type skipFrameField struct{}
 
-func (nullField) GetKey() string   { return "" }
-func (nullField) GetValue() string { return "" }
-func (nullField) Discard() bool    { return true }
+func (skipFrameField) GetKey() string   { return "" }
+func (skipFrameField) GetValue() string { return "" }
+func (skipFrameField) SkipFrame() bool  { return true }
 
 type withFields struct {
 	record.Context
