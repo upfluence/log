@@ -26,6 +26,14 @@ func (s *Sink) Log(r record.Record) error {
 	)
 
 	if len(errs) == 0 {
+		for _, arg := range r.Args() {
+			if err, ok := arg.(error); ok {
+				errs = append(errs, err)
+			}
+		}
+	}
+
+	if len(errs) == 0 {
 		errs = []error{errors.New(r.Formatted())}
 	}
 
