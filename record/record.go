@@ -36,6 +36,7 @@ type Record interface {
 	Level() Level
 
 	Formatted() string
+	Args() []interface{}
 }
 
 type RecordFactory interface {
@@ -70,9 +71,10 @@ type record struct {
 	vs  []interface{}
 }
 
-func (r *record) ID() uint64      { return r.id }
-func (r *record) Time() time.Time { return r.t }
-func (r *record) Level() Level    { return r.l }
+func (r *record) ID() uint64          { return r.id }
+func (r *record) Time() time.Time     { return r.t }
+func (r *record) Level() Level        { return r.l }
+func (r *record) Args() []interface{} { return r.vs }
 
 func (r *record) Formatted() string {
 	if r.fmt == "" {
