@@ -39,13 +39,15 @@ func NewSink(f Formatter, w io.Writer) sink.Sink {
 
 func (s *Sink) Log(r record.Record) error {
 	s.mu.Lock()
-	defer s.mu.Unlock()
 
 	if err := s.formatter.Format(s.writer, r); err != nil {
+		s.mu.Unlock()
 		return err
 	}
 
 	_, err := s.writer.Write(newLine)
+
+	s.mu.Unlock()
 
 	return err
 }
