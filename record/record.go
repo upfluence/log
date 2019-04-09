@@ -93,9 +93,24 @@ func (r *record) Time() time.Time     { return r.t }
 func (r *record) Level() Level        { return r.l }
 func (r *record) Args() []interface{} { return r.vs }
 
+var space = []byte{' '}
+
 func (r *record) WriteFormatted(w io.Writer) {
 	if r.fmt == "" {
-		fmt.Fprint(w, r.vs...)
+		for i, v := range r.vs {
+			switch vv := v.(type) {
+			case string:
+				io.WriteString(w, vv)
+			case []byte:
+				w.Write(vv)
+			default:
+				fmt.Fprint(w, v)
+			}
+
+			if i != len(r.vs)-1 {
+				w.Write(space)
+			}
+		}
 		return
 	}
 
