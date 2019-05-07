@@ -94,6 +94,10 @@ func (l *logger) dup(ctx record.Context) *logger {
 }
 
 func (l *logger) WithField(f record.Field) SugaredLogger {
+	if f == nil {
+		return l
+	}
+
 	return l.WithFields(f)
 }
 
@@ -102,10 +106,18 @@ func (l *logger) WithContext(ctx context.Context) SugaredLogger {
 }
 
 func (l *logger) WithFields(fs ...record.Field) SugaredLogger {
+	if len(fs) == 0 {
+		return l
+	}
+
 	return l.dup(&withFields{Context: l.ctx, fields: fs})
 }
 
 func (l *logger) WithError(err error) SugaredLogger {
+	if err == nil {
+		return l
+	}
+
 	return l.dup(&withErrors{Context: l.ctx, errs: []error{err}})
 }
 
