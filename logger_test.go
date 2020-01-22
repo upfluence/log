@@ -1,11 +1,13 @@
 package log
 
 import (
+	"errors"
 	"io"
 	"io/ioutil"
 	"testing"
 
 	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
 	"github.com/upfluence/log/record"
 	"github.com/upfluence/log/sink/leveled"
 	"github.com/upfluence/log/sink/writer"
@@ -155,4 +157,34 @@ func BenchmarkWithField(b *testing.B) {
 			bench,
 		)
 	}
+}
+
+func TestFieldThreshold(t *testing.T) {
+	var (
+		s recordSink
+
+		l = NewLogger(WithSink(&s), WithDefaultFieldThreshold(record.Notice))
+	)
+
+	l.WithField(Field("foo", 1.)).Debug("foo")
+	assert.Equal(t, 0, len(s.r.Fields()))
+
+	l.WithField(Field("foo", 1)).Notice("bar")
+	assert.Equal(t, []record.Field{Field("foo", 1)}, s.r.Fields())
+}
+
+func TestErrorThreshold(t *testing.T) {
+	var (
+		s recordSink
+
+		err = errors.New("mock")
+
+		l = NewLogger(WithSink(&s), WithDefaultErrorThreshold(record.Info))
+	)
+
+	l.WithError(err).Debug("foo")
+	assert.Equal(t, 0, len(s.r.Errs()))
+
+	l.WithError(err).Info("bar")
+	assert.Equal(t, []error{err}, s.r.Errs())
 }
