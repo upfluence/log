@@ -3,33 +3,40 @@ package stacktrace
 import (
 	"bytes"
 	"io/ioutil"
+	"strings"
 	"testing"
 )
 
 func TestWriteCaller(t *testing.T) {
-	for _, tCase := range []struct {
-		name string
-		in   []string
-		out  string
+	for _, tt := range []struct {
+		name     string
+		in       []string
+		callerfn func(*testing.T, string)
 	}{
 		{
 			name: "no black list",
-			out:  "stacktrace_test.go:28",
+			callerfn: func(t *testing.T, c string) {
+				if c != "stacktrace_test.go:37" {
+					t.Errorf("invalid caller: %q", c)
+				}
+			},
 		},
 		{
 			name: "blacklist package",
 			in:   []string{"github.com/upfluence/log/internal"},
-			out:  "testing.go:777",
+			callerfn: func(t *testing.T, c string) {
+				if cs := strings.Split(c, ":"); len(cs) != 2 || cs[0] != "testing.go" {
+					t.Errorf("invalid caller: %q", c)
+				}
+			},
 		},
 	} {
-		t.Run(tCase.name, func(t *testing.T) {
-			buf := &bytes.Buffer{}
+		t.Run(tt.name, func(t *testing.T) {
+			var buf bytes.Buffer
 
-			WriteCaller(buf, tCase.in)
+			WriteCaller(&buf, tt.in)
 
-			if res := buf.String(); tCase.out != res {
-				t.Errorf("Wrong result: %v [ instead of: %v ]", res, tCase.out)
-			}
+			tt.callerfn(t, buf.String())
 		})
 	}
 }
