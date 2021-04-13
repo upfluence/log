@@ -38,3 +38,26 @@ func mergeContextExtractor(lce, rce ContextExtractor) ContextExtractor {
 		return multiContextExtractor([]ContextExtractor{lce, rce})
 	}
 }
+
+type ContextExtractorFunc func(context.Context, record.Level) []record.Field
+
+func (fn ContextExtractorFunc) Extract(ctx context.Context, lvl record.Level) []record.Field {
+	return fn(ctx, lvl)
+}
+
+type leveledContextExtractor struct {
+	ce  ContextExtractor
+	lvl record.Level
+}
+
+func LeveledContextExtractor(ce ContextExtractor, lvl record.Level) ContextExtractor {
+	return &leveledContextExtractor{ce: ce, lvl: lvl}
+}
+
+func (lce *leveledContextExtractor) Extract(ctx context.Context, lvl record.Level) []record.Field {
+	if lvl < lce.lvl {
+		return nil
+	}
+
+	return lce.ce.Extract(ctx, lvl)
+}

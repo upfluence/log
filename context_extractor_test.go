@@ -48,3 +48,27 @@ func TestMultiExtractor(t *testing.T) {
 	l.WithContext(subContext{}).Error("buz")
 	assert.Equal(t, 3, len(s.r.Fields()))
 }
+
+func TestLeveledContextExtractor(t *testing.T) {
+	var (
+		s recordSink
+
+		l = NewLogger(
+			WithContextExtractor(
+				LeveledContextExtractor(
+					ContextExtractorFunc(func(context.Context, record.Level) []record.Field {
+						return []record.Field{Field("foo", "bar")}
+					}),
+					record.Notice,
+				),
+			),
+			WithSink(&s),
+		)
+	)
+
+	l.WithContext(subContext{}).Error("buz")
+	assert.Equal(t, 1, len(s.r.Fields()))
+
+	l.WithContext(subContext{}).Info("buz")
+	assert.Equal(t, 0, len(s.r.Fields()))
+}
