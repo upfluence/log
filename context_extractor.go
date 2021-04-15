@@ -39,6 +39,23 @@ func mergeContextExtractor(lce, rce ContextExtractor) ContextExtractor {
 	}
 }
 
+func CombineContextExtractors(ces ...ContextExtractor) ContextExtractor {
+	switch len(ces) {
+	case 0:
+		return noopExtractor{}
+	case 1:
+		return ces[0]
+	}
+
+	ce, ces := ces[0], ces[1:]
+
+	for _, rce := range ces {
+		ce = mergeContextExtractor(ce, rce)
+	}
+
+	return ce
+}
+
 type ContextExtractorFunc func(context.Context, record.Level) []record.Field
 
 func (fn ContextExtractorFunc) Extract(ctx context.Context, lvl record.Level) []record.Field {

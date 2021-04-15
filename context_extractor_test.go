@@ -56,9 +56,14 @@ func TestLeveledContextExtractor(t *testing.T) {
 		l = NewLogger(
 			WithContextExtractor(
 				LeveledContextExtractor(
-					ContextExtractorFunc(func(context.Context, record.Level) []record.Field {
-						return []record.Field{Field("foo", "bar")}
-					}),
+					CombineContextExtractors(
+						ContextExtractorFunc(func(context.Context, record.Level) []record.Field {
+							return []record.Field{Field("foo", "bar")}
+						}),
+						ContextExtractorFunc(func(context.Context, record.Level) []record.Field {
+							return []record.Field{Field("biz", "buz")}
+						}),
+					),
 					record.Notice,
 				),
 			),
@@ -67,7 +72,11 @@ func TestLeveledContextExtractor(t *testing.T) {
 	)
 
 	l.WithContext(subContext{}).Error("buz")
-	assert.Equal(t, 1, len(s.r.Fields()))
+	assert.Equal(
+		t,
+		[]record.Field{Field("foo", "bar"), Field("biz", "buz")},
+		s.r.Fields(),
+	)
 
 	l.WithContext(subContext{}).Info("buz")
 	assert.Equal(t, 0, len(s.r.Fields()))
