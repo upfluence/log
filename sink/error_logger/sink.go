@@ -9,23 +9,9 @@ import (
 	"github.com/upfluence/log/sink"
 )
 
-type ErrorLogger interface {
-	Capture(error, map[string]interface{}) error
-}
-
-type errorLoggerWrapper struct {
-	el ErrorLogger
-}
-
-func (elw *errorLoggerWrapper) Report(err error, opts reporter.ReportOptions) {
-	elw.el.Capture(err, opts.Tags)
-}
-
-func (elw *errorLoggerWrapper) Close() error { return nil }
-
 type Sink struct {
-	r reporter.Reporter
-	d int
+	r  reporter.Reporter
+	df depthFetcher
 }
 
 func NewSink(el ErrorLogger) sink.Sink {
@@ -33,7 +19,14 @@ func NewSink(el ErrorLogger) sink.Sink {
 }
 
 func WrapReporter(r reporter.Reporter, depth int) sink.Sink {
-	return &Sink{r: r, d: depth + 1}
+	return &Sink{r: r, df: staticDepthFetcher(depth + 1)}
+}
+
+func WrapReporterWithBlacklist(r reporter.Reporter, blacklist ...string) sink.Sink {
+	return &Sink{
+		r:  r,
+		df: blacklistDepthFetcher(append(defaultBlacklist, blacklist...)),
+	}
 }
 
 func (s *Sink) Log(r record.Record) error {
@@ -62,7 +55,7 @@ func (s *Sink) Log(r record.Record) error {
 	}
 
 	for _, err := range errs {
-		s.r.Report(err, reporter.ReportOptions{Tags: tags, Depth: s.d})
+		s.r.Report(err, reporter.ReportOptions{Tags: tags, Depth: s.df.fetch()})
 	}
 
 	return nil
