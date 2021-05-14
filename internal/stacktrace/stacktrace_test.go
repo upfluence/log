@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestWriteCaller(t *testing.T) {
@@ -16,7 +18,7 @@ func TestWriteCaller(t *testing.T) {
 		{
 			name: "no black list",
 			callerfn: func(t *testing.T, c string) {
-				if c != "stacktrace_test.go:37" {
+				if c != "stacktrace_test.go:39" {
 					t.Errorf("invalid caller: %q", c)
 				}
 			},
@@ -37,6 +39,28 @@ func TestWriteCaller(t *testing.T) {
 			WriteCaller(&buf, tt.in)
 
 			tt.callerfn(t, buf.String())
+		})
+	}
+}
+
+func TestFrameDepth(t *testing.T) {
+	for _, tt := range []struct {
+		name string
+		in   []string
+		want int
+	}{
+		{
+			name: "no black list",
+			want: 1,
+		},
+		{
+			name: "blacklist package",
+			in:   []string{"github.com/upfluence/log/internal"},
+			want: 2,
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, FrameDepth(tt.in))
 		})
 	}
 }
