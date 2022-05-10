@@ -1,4 +1,4 @@
-package writer
+package writer_test
 
 import (
 	"bytes"
@@ -8,17 +8,18 @@ import (
 	"github.com/upfluence/log"
 	"github.com/upfluence/log/logtest"
 	"github.com/upfluence/log/record"
+	"github.com/upfluence/log/sink/writer"
 )
 
 func TestLog(t *testing.T) {
 	for _, tt := range []struct {
-		f    Formatter
+		f    writer.Formatter
 		opts []logtest.RecordOption
 		err  error
 		out  string
 	}{
 		{
-			f: NewFastFormatter(),
+			f: writer.NewFastFormatter(),
 			opts: []logtest.RecordOption{
 				logtest.WithMessage("foo bar"),
 				logtest.WithLevel(record.Info),
@@ -26,7 +27,7 @@ func TestLog(t *testing.T) {
 			out: "[I 010101 00:00:00] foo bar\n",
 		},
 		{
-			f: NewFastFormatter(),
+			f: writer.NewFastFormatter(),
 			opts: []logtest.RecordOption{
 				logtest.WithMessage("foo bar"),
 				logtest.WithLevel(record.Info),
@@ -35,7 +36,7 @@ func TestLog(t *testing.T) {
 			out: "[I 010101 00:00:00] foo bar [error: foo bar]\n",
 		},
 		{
-			f: NewFastFormatter(),
+			f: writer.NewFastFormatter(),
 			opts: []logtest.RecordOption{
 				logtest.WithMessage("foo bar"),
 				logtest.WithLevel(record.Info),
@@ -48,7 +49,7 @@ func TestLog(t *testing.T) {
 
 		r := logtest.BuildRecord(tt.opts...)
 
-		if err := NewSink(tt.f, &buf).Log(r); err != tt.err {
+		if err := writer.NewSink(tt.f, &buf).Log(r); err != tt.err {
 			t.Errorf("Log() = %v [ expected: %v ]", err, tt.err)
 		}
 
