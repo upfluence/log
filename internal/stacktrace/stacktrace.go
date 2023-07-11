@@ -22,11 +22,11 @@ var (
 	defaultCaller = []byte("???:0")
 )
 
-func WriteCaller(w io.Writer, blacklist []string) {
+func FindCaller(depth int, blacklist []string) *runtime.Frame {
 	pcs := stacktracePool.Get().([]uintptr)
 	defer stacktracePool.Put(pcs)
 
-	runtime.Callers(2, pcs)
+	runtime.Callers(1+depth, pcs)
 
 	frames := runtime.CallersFrames(pcs)
 
@@ -35,9 +35,20 @@ func WriteCaller(w io.Writer, blacklist []string) {
 			continue
 		}
 
+		return &frame
+	}
+
+	return nil
+}
+
+func WriteCaller(w io.Writer, blacklist []string) {
+	if frame := FindCaller(2, blacklist); frame != nil {
 		io.WriteString(w, filepath.Base(frame.File))
+
 		w.Write(semicolon)
+
 		io.WriteString(w, strconv.Itoa(frame.Line))
+
 		return
 	}
 
