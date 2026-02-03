@@ -9,10 +9,10 @@ on:
 jobs:
   test:
     name: Run Tests
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
-        go: [ '1.22.x', '1.21.x' ]
+        go: [ '1.24.x', '1.23.x' ]
 
     steps:
       - name: Install Go ${{ matrix.go }}
