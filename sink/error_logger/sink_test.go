@@ -8,6 +8,8 @@ import (
 	"github.com/upfluence/errors/reporter"
 	"github.com/upfluence/log"
 	"github.com/upfluence/log/logtest"
+	"github.com/upfluence/log/record"
+	"github.com/upfluence/pkg/pointers"
 )
 
 type report struct {
@@ -35,7 +37,7 @@ func TestSink(t *testing.T) {
 			reports: []report{
 				{
 					err:  errors.New("default msg"),
-					opts: reporter.ReportOptions{Depth: 2, Tags: map[string]interface{}{}},
+					opts: reporter.ReportOptions{Depth: 2, Tags: map[string]any{}, ReportedLevel: pointers.Ptr(record.Error)},
 				},
 			},
 		},
@@ -44,7 +46,7 @@ func TestSink(t *testing.T) {
 			reports: []report{
 				{
 					err:  errors.New("err1"),
-					opts: reporter.ReportOptions{Depth: 2, Tags: map[string]interface{}{}},
+					opts: reporter.ReportOptions{Depth: 2, Tags: map[string]any{}, ReportedLevel: pointers.Ptr(record.Error)},
 				},
 			},
 		},
@@ -57,8 +59,9 @@ func TestSink(t *testing.T) {
 				{
 					err: errors.New("err1"),
 					opts: reporter.ReportOptions{
-						Depth: 2,
-						Tags:  map[string]interface{}{"foo": "bar"},
+						Depth:         2,
+						Tags:          map[string]any{"foo": "bar"},
+						ReportedLevel: pointers.Ptr(record.Error),
 					},
 				},
 			},
@@ -70,11 +73,11 @@ func TestSink(t *testing.T) {
 			reports: []report{
 				{
 					err:  errors.New("err1"),
-					opts: reporter.ReportOptions{Depth: 2, Tags: map[string]interface{}{}},
+					opts: reporter.ReportOptions{Depth: 2, Tags: map[string]any{}, ReportedLevel: pointers.Ptr(record.Error)},
 				},
 				{
 					err:  errors.New("err2"),
-					opts: reporter.ReportOptions{Depth: 2, Tags: map[string]interface{}{}},
+					opts: reporter.ReportOptions{Depth: 2, Tags: map[string]any{}, ReportedLevel: pointers.Ptr(record.Error)},
 				},
 			},
 		},
