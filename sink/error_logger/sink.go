@@ -7,6 +7,7 @@ import (
 	"github.com/upfluence/errors/reporter"
 	"github.com/upfluence/log/record"
 	"github.com/upfluence/log/sink"
+	"github.com/upfluence/pkg/pointers"
 )
 
 type Sink struct {
@@ -55,7 +56,14 @@ func (s *Sink) Log(r record.Record) error {
 	}
 
 	for _, err := range errs {
-		s.r.Report(err, reporter.ReportOptions{Tags: tags, Depth: s.df.fetch()})
+		s.r.Report(
+			err,
+			reporter.ReportOptions{
+				Tags:          tags,
+				Depth:         s.df.fetch(),
+				ReportedLevel: pointers.Ptr(r.Level()),
+			},
+		)
 	}
 
 	return nil
